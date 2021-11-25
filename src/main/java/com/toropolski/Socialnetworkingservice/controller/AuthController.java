@@ -1,5 +1,7 @@
 package com.toropolski.Socialnetworkingservice.controller;
 
+import com.toropolski.Socialnetworkingservice.dto.AuthenticationResponse;
+import com.toropolski.Socialnetworkingservice.dto.LoginRequest;
 import com.toropolski.Socialnetworkingservice.dto.RegistryRequest;
 import com.toropolski.Socialnetworkingservice.service.AuthService;
 import lombok.AllArgsConstructor;
@@ -21,6 +23,10 @@ public class AuthController {
 
         return new ResponseEntity<>("User Registration Successful",
                                 HttpStatus.OK);
+    }
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
     }
 
     @GetMapping("accountVerification/{token}")
