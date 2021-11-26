@@ -1,6 +1,7 @@
 package com.toropolski.Socialnetworkingservice.model;
 
 import com.sun.istack.NotNull;
+import com.toropolski.Socialnetworkingservice.model.enumerate.VoteType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
