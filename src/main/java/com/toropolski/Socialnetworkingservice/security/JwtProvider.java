@@ -3,22 +3,29 @@ package com.toropolski.Socialnetworkingservice.security;
 import com.toropolski.Socialnetworkingservice.exception.SpringRedditException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.sql.Date;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.time.Instant;
 
 import static io.jsonwebtoken.Jwts.parser;
 
 @Service
+@Getter
 public class JwtProvider {
 
     private KeyStore keyStore;
+    @Value("${jwt.expiration.time}")
+    private Long jwtExpirationInMillis;
 
     @PostConstruct
     public void init() {
@@ -37,6 +44,19 @@ public class JwtProvider {
         return Jwts.builder()
                 .setSubject(principal.getUsername())
                 .signWith(getPrivateKey())
+                .setExpiration(Date.from(Instant
+                        .now()
+                        .plusMillis(jwtExpirationInMillis)))
+                .compact();
+    }
+
+    public String generateTokenWithUserName(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .signWith(getPrivateKey())
+                .setExpiration(Date.from(Instant
+                        .now()
+                        .plusMillis(jwtExpirationInMillis)))
                 .compact();
     }
 

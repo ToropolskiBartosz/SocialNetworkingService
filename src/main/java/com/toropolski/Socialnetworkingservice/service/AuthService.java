@@ -2,6 +2,7 @@ package com.toropolski.Socialnetworkingservice.service;
 
 import com.toropolski.Socialnetworkingservice.dto.AuthenticationResponse;
 import com.toropolski.Socialnetworkingservice.dto.LoginRequest;
+import com.toropolski.Socialnetworkingservice.dto.RefreshTokenRequst;
 import com.toropolski.Socialnetworkingservice.dto.RegistryRequest;
 import com.toropolski.Socialnetworkingservice.exception.SpringRedditException;
 import com.toropolski.Socialnetworkingservice.model.NotificationEmail;
@@ -34,6 +35,7 @@ public class AuthService {
     private final MailService mailService;
     private final JwtProvider jwtProvider;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public void signup(RegistryRequest registryRequest){
@@ -55,8 +57,10 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     User getCurrentUser() {
-        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) SecurityContextHolder.
+        org.springframework.security.core.userdetails.User principal =
+                (org.springframework.security.core.userdetails.User) SecurityContextHolder.
                 getContext().getAuthentication().getPrincipal();
+
         return userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + principal.getUsername()));
     }
@@ -90,10 +94,29 @@ public class AuthService {
     }
 
     public AuthenticationResponse login(LoginRequest loginRequest) {
-        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
-                loginRequest.getPassword()));
+        Authentication authenticate = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(), loginRequest.getPassword()));
+
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String authenticationToken = jwtProvider.generateToken(authenticate);
-        return new AuthenticationResponse(authenticationToken, loginRequest.getUsername());
+
+        return AuthenticationResponse.builder()
+                .authenticationToken(authenticationToken)
+                .refreshToken(refreshTokenService.generateRefreshToken().getToken())
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()))
+                .username(loginRequest.getUsername())
+                .build();
+    }
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequst refreshTokenRequst) {
+        refreshTokenService.validationRefreshToken(refreshTokenRequst.getRefreshToken());
+        String token = jwtProvider.generateTokenWithUserName(refreshTokenRequst.getUsername());
+        return AuthenticationResponse.builder()
+                .authenticationToken(token)
+                .refreshToken(refreshTokenRequst.getRefreshToken())
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMillis()))
+                .username(refreshTokenRequst.getUsername())
+                .build();
     }
 }
