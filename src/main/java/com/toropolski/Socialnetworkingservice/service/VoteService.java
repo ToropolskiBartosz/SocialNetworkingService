@@ -3,6 +3,7 @@ package com.toropolski.Socialnetworkingservice.service;
 import com.toropolski.Socialnetworkingservice.dto.VoteDto;
 import com.toropolski.Socialnetworkingservice.exception.PostNotFoundException;
 import com.toropolski.Socialnetworkingservice.exception.SpringRedditException;
+import com.toropolski.Socialnetworkingservice.mapper.VoteMapper;
 import com.toropolski.Socialnetworkingservice.model.Post;
 import com.toropolski.Socialnetworkingservice.model.Vote;
 import com.toropolski.Socialnetworkingservice.model.enumerate.VoteType;
@@ -19,6 +20,7 @@ public class VoteService {
     private final VoteRepository voteRepository;
     private final PostRepository postRepository;
     private final AuthService authService;
+    private final VoteMapper voteMapper;
 
     public void vote(VoteDto voteDto){
         Post post = postRepository.findById(voteDto.getPostId())
@@ -27,29 +29,20 @@ public class VoteService {
         Optional<Vote> voteByPostAndUser = voteRepository
                 .findTopByPostAndUserOrderByVoteIdDesc(post, authService.getCurrentUser());
 
-        if(voteByPostAndUser.isPresent() &&
-                voteByPostAndUser.get().getVoteType()
+        if(voteByPostAndUser.isPresent() && voteByPostAndUser.get().getVoteType()
                         .equals(voteDto.getVoteType())){
             throw new SpringRedditException("You have already "
                     + voteDto.getVoteType()
                     + "'d for this post");
         }
 
-        if(VoteType.UPVOTE.equals(voteDto.getVoteType())){
-            post.setVoteCount(post.getVoteCount()+1);
-        }else{
-            post.setVoteCount(post.getVoteCount()-1);
-        }
+        int countVote = VoteType.UPVOTE.equals(voteDto.getVoteType()) ? 1 : -1;
+        post.setVoteCount(post.getVoteCount() + countVote);
+
+        Vote vote = voteMapper.mapDtoToVote(voteDto, post, authService.getCurrentUser());
 
         postRepository.save(post);
-        voteRepository.save(mapToVote(voteDto,post));
+        voteRepository.save(vote);
     }
 
-    private Vote mapToVote(VoteDto voteDto, Post post) {
-        return Vote.builder()
-                .voteType(voteDto.getVoteType())
-                .post(post)
-                .user(authService.getCurrentUser())
-                .build();
-    }
 }

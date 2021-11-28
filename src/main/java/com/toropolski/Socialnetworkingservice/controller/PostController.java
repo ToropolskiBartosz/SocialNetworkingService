@@ -26,9 +26,10 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAllPosts() {
+    public ResponseEntity<List<PostResponse>> getAllPosts(@RequestParam int nrPage) {
+        int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
-                .status(HttpStatus.OK).body(postService.getAllPosts());
+                .status(HttpStatus.OK).body(postService.getAllPosts(nrPage -1));
     }
 
     @GetMapping("/{id}")
@@ -37,15 +38,17 @@ public class PostController {
                 .status(HttpStatus.OK).body(postService.getPost(id));
     }
 
-    @GetMapping("by-subreddit/{id}")
-    public ResponseEntity<List<PostResponse>> getPostsBySubreddit(Long id) {
+    @GetMapping("by-topic/{id}")
+    public ResponseEntity<List<PostResponse>> getPostsBySubreddit(@RequestParam int nrPage, Long id) {
+        int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
-                .status(HttpStatus.OK).body(postService.getPostsBySubreddit(id));
+                .status(HttpStatus.OK).body(postService.getPostsBySubreddit(id, correctNrPage - 1));
     }
 
     @GetMapping("by-user/{name}")
-    public ResponseEntity<List<PostResponse>> getPostsByUsername(String username) {
+    public ResponseEntity<List<PostResponse>> getPostsByUsername(@RequestParam int nrPage, String username) {
+        int correctNrPage = nrPage>0 ? nrPage:1;
         return ResponseEntity
-                .status(HttpStatus.OK).body(postService.getPostsByUsername(username));
+                .status(HttpStatus.OK).body(postService.getPostsByUsername(username, correctNrPage - 1));
     }
 }

@@ -12,8 +12,10 @@ import com.toropolski.Socialnetworkingservice.repository.CommentRepository;
 import com.toropolski.Socialnetworkingservice.repository.PostRepository;
 import com.toropolski.Socialnetworkingservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private static final String POST_URL = "";
+    public static final int PAGE_SIZE = 2;
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -46,26 +49,27 @@ public class CommentService {
         mailService.sendMail(new NotificationEmail(user.getUsername() + " Commented on your post", user.getEmail(), message));
     }
 
-    public List<CommentsDto> getCommentByPost(Long postId) {
+    @Transactional(readOnly = true)
+    public List<CommentsDto> getAll(int nrPage) {
+        return commentRepository.findAllComments(PageRequest.of(nrPage, PAGE_SIZE))
+                .stream()
+                .map(commentMapper::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<CommentsDto> getCommentByPost(Long postId, int nrPage) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException("Not found post by id" + postId.toString()));
-        return commentRepository.findByPost(post)
+        return commentRepository.findByPostPage(post, PageRequest.of(nrPage, PAGE_SIZE))
                 .stream()
                 .map(commentMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
-    public List<CommentsDto> getCommentsByUser(String userName) {
+    public List<CommentsDto> getCommentsByUser(String userName,int nrPage) {
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new UsernameNotFoundException("Not found user " + userName));
-        return commentRepository.findAllByUser(user)
-                .stream()
-                .map(commentMapper::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    public List<CommentsDto> getAll() {
-        return commentRepository.findAll()
+        return commentRepository.findAllByUserPage(user,PageRequest.of(nrPage, PAGE_SIZE))
                 .stream()
                 .map(commentMapper::mapToDto)
                 .collect(Collectors.toList());

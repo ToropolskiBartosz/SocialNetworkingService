@@ -1,5 +1,8 @@
 package com.toropolski.Socialnetworkingservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sun.istack.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +13,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
 import java.time.Instant;
+import java.util.List;
 
-import static javax.persistence.FetchType.LAZY;
 
 @Data
 @Entity
@@ -30,11 +33,14 @@ public class Post {
     @Lob
     private String description;
     private Integer voteCount;
-    @ManyToOne(fetch = LAZY)
+    @OneToMany(fetch = FetchType.LAZY
+            ,mappedBy = "post")
+    private List<Comment> comments;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", referencedColumnName = "userId")
     private User user;
     private Instant createdDate;
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "subreddit_id")
-    private Subreddit subreddit;
+    @ManyToOne
+    @JoinColumn(name = "topicId")
+    private Topic topic;
 }

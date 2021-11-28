@@ -1,5 +1,6 @@
 package com.toropolski.Socialnetworkingservice.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sun.istack.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 import java.util.List;
 
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
 
 @Data
@@ -19,7 +21,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @Entity
 @Builder
-public class Subreddit {
+public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -27,10 +29,10 @@ public class Subreddit {
     private String name;
     @NotBlank(message = "Description is required")
     private String description;
-    @OneToMany(mappedBy = "subreddit",
+    @OneToMany(mappedBy = "topic",
             fetch = LAZY)
     private List<Post> posts;
     private Instant createdDate;
     @ManyToOne(fetch = LAZY)
-    private User user;
+    private User userId;
 }

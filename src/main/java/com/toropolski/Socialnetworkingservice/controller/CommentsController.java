@@ -22,23 +22,28 @@ public class CommentsController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
     @GetMapping
-    public ResponseEntity<List<CommentsDto>> getAllComments(){
+    public ResponseEntity<List<CommentsDto>> getAllComments(@RequestParam int nrPage){
+        int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(commentService.getAll());
+                .body(commentService.getAll(correctNrPage - 1));
     }
 
     @GetMapping("/byPostId/{postId}")
-    public ResponseEntity<List<CommentsDto>> getAllCommentsForPost(@PathVariable("postId") Long postId) {
+    public ResponseEntity<List<CommentsDto>> getAllCommentsForPost(@PathVariable("postId") Long postId,
+                                                                   @RequestParam int nrPage) {
+        int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(commentService.getCommentByPost(postId));
+                .body(commentService.getCommentByPost(postId, correctNrPage - 1));
     }
 
     @GetMapping("/byUser/{userName}")
-    public ResponseEntity<List<CommentsDto>> getAllCommentsByUser(@PathVariable("userName") String userName) {
+    public ResponseEntity<List<CommentsDto>> getAllCommentsByUser(@PathVariable("userName") String userName,
+                                                                  @RequestParam int nrPage) {
+        int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(commentService.getCommentsByUser(userName));
+                .body(commentService.getCommentsByUser(userName,correctNrPage));
     }
 }
