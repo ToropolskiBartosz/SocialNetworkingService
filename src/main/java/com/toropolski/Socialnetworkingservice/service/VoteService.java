@@ -22,7 +22,7 @@ public class VoteService {
     private final AuthService authService;
     private final VoteMapper voteMapper;
 
-    public void vote(VoteDto voteDto){
+    public VoteDto vote(VoteDto voteDto){
         Post post = postRepository.findById(voteDto.getPostId())
                 .orElseThrow(() -> new PostNotFoundException("Not found post by id: "
                         + voteDto.getPostId().toString()));
@@ -43,6 +43,8 @@ public class VoteService {
 
         postRepository.save(post);
         voteRepository.save(vote);
+
+        return voteDto;
     }
 
 }

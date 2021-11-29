@@ -5,6 +5,7 @@ import com.toropolski.Socialnetworkingservice.dto.PostResponse;
 import com.toropolski.Socialnetworkingservice.exception.PostNotFoundException;
 import com.toropolski.Socialnetworkingservice.exception.SubredditNotFoundException;
 import com.toropolski.Socialnetworkingservice.mapper.PostMapper;
+import com.toropolski.Socialnetworkingservice.model.Comment;
 import com.toropolski.Socialnetworkingservice.model.Post;
 import com.toropolski.Socialnetworkingservice.model.Topic;
 import com.toropolski.Socialnetworkingservice.model.User;
@@ -19,8 +20,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import static java.util.stream.Collectors.toList;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -35,11 +39,13 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public void save(PostRequest postRequest) {
+    public PostRequest save(PostRequest postRequest) {
         Topic topic = topicRepository.findByName(postRequest.getTopicName())
                 .orElseThrow(() -> new SubredditNotFoundException(postRequest.getTopicName()));
         User currentUser = authService.getCurrentUser();
         postRepository.save(postMapper.map(postRequest, topic, currentUser));
+
+        return postRequest;
     }
 
     @Transactional(readOnly = true)
@@ -75,4 +81,20 @@ public class PostService {
                 .collect(toList());
     }
 
+    @javax.transaction.Transactional
+    public void editPost(Map<String, String> fields, long postId){
+        Post postById = postRepository.findById(postId)
+                .orElseThrow();
+        fields.forEach((key,value) ->{
+            // use reflection to get field k on manager and set it to value v
+            Field field = ReflectionUtils.findField(Post.class, key);
+            field.setAccessible(true);
+            ReflectionUtils.setField(field, postById, value);
+        });
+        postRepository.save(postById);
+    }
+
+    public void deletePost(Long postId) {
+        postRepository.deleteById(postId);
+    }
 }

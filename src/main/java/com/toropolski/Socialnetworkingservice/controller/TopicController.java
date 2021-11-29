@@ -8,10 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/topics")
@@ -46,8 +46,14 @@ public class TopicController {
 
     }
 
+    @PatchMapping("/editTopic/{topicId}")
+    public void editComment(@PathVariable("topicId") Long topicId,
+                            @RequestBody Map<String,String> fields){
+
+        topicService.editTopic(fields,topicId);
+    }
+
     @GetMapping("/withPost")
-    @Transactional
     public void getAllTopicWithPost(){
         throw new IllegalArgumentException("This method is empty");
     }

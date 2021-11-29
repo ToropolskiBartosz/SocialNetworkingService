@@ -33,7 +33,8 @@ public class Post {
     @Lob
     private String description;
     private Integer voteCount;
-    @OneToMany(fetch = FetchType.LAZY
+    @OneToMany(cascade = CascadeType.REMOVE
+            ,fetch = FetchType.LAZY
             ,mappedBy = "post")
     private List<Comment> comments;
     @ManyToOne(fetch = FetchType.LAZY)

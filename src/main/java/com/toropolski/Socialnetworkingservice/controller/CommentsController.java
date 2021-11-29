@@ -1,6 +1,10 @@
 package com.toropolski.Socialnetworkingservice.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toropolski.Socialnetworkingservice.dto.CommentsDto;
+import com.toropolski.Socialnetworkingservice.dto.CommentsRequest;
+import com.toropolski.Socialnetworkingservice.model.Comment;
 import com.toropolski.Socialnetworkingservice.service.CommentService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -9,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -16,11 +21,14 @@ import java.util.List;
 public class CommentsController {
 
     private final CommentService commentService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping
-    public ResponseEntity<Void> createComment(@RequestBody CommentsDto commentsDto){
-        commentService.save(commentsDto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<CommentsDto> createComment(@RequestBody CommentsRequest commentsRequest){
+
+        return  ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(commentService.save(commentsRequest));
     }
     @GetMapping
     public ResponseEntity<List<CommentsDto>> getAllComments(@RequestParam int nrPage, Sort.Direction sort){
@@ -47,4 +55,16 @@ public class CommentsController {
                 .status(HttpStatus.OK)
                 .body(commentService.getCommentsByUser(userName,correctNrPage));
     }
+
+    @PatchMapping("/editComment/{commentId}")
+    public void editComment(@PathVariable("commentId") Long commentId,
+                            @RequestBody Map<String,String> fields){
+
+        commentService.editComment(fields,commentId);
+    }
+    @DeleteMapping("/deleteComment/{commentId}")
+    public void deleteComment(@PathVariable("commentId") Long commentId){
+        commentService.deleteComment(commentId);
+    }
+
 }

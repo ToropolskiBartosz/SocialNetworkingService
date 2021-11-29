@@ -1,6 +1,7 @@
 package com.toropolski.Socialnetworkingservice.service;
 
 import com.toropolski.Socialnetworkingservice.dto.CommentsDto;
+import com.toropolski.Socialnetworkingservice.dto.CommentsRequest;
 import com.toropolski.Socialnetworkingservice.exception.PostNotFoundException;
 import com.toropolski.Socialnetworkingservice.exception.SpringRedditException;
 import com.toropolski.Socialnetworkingservice.mapper.CommentMapper;
@@ -17,8 +18,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,14 +41,17 @@ public class CommentService {
     private final MailContentBuilder mailContentBuilder;
     private final MailService mailService;
 
-    public void save(CommentsDto commentsDto){
-        Post post = postRepository.findById(commentsDto.getPostId())
-                .orElseThrow(() -> new PostNotFoundException(commentsDto.getPostId().toString()));
-        Comment comment = commentMapper.map(commentsDto, post, authService.getCurrentUser());
+    public CommentsDto save(CommentsRequest commentsRequest){
+
+        Post post = postRepository.findById(commentsRequest.getPostId())
+                .orElseThrow(() -> new PostNotFoundException(commentsRequest.getPostId().toString()));
+        Comment comment = commentMapper.map(commentsRequest, post, authService.getCurrentUser());
         commentRepository.save(comment);
 
         String message = mailContentBuilder.build(post.getUser().getUsername() + " posted a comment on your post." + POST_URL);
         sendCommentNotification(message, post.getUser());
+
+        return commentMapper.mapToDto(comment);
     }
 
     private void sendCommentNotification(String message, User user) {
@@ -75,4 +83,22 @@ public class CommentService {
                 .map(commentMapper::mapToDto)
                 .collect(Collectors.toList());
     }
+
+    @javax.transaction.Transactional
+    public void editComment(Map<String, String> fields, long commentId){
+        Comment commentById = commentRepository.findById(commentId)
+                .orElseThrow();
+        fields.forEach((key,value) ->{
+            // use reflection to get field k on manager and set it to value v
+            Field field = ReflectionUtils.findField(Comment.class, key);
+            field.setAccessible(true);
+            ReflectionUtils.setField(field, commentById, value);
+        });
+        commentRepository.save(commentById);
+    }
+
+    public void deleteComment(Long commentId) {
+        commentRepository.deleteById(commentId);
+    }
+    
 }

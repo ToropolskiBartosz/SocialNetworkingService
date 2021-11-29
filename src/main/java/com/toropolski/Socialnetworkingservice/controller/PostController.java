@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -21,9 +22,10 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> createPost(@RequestBody PostRequest postRequest) {
-        postService.save(postRequest);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<PostRequest> createPost(@RequestBody PostRequest postRequest) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(postService.save(postRequest));
     }
 
     @GetMapping
@@ -40,16 +42,28 @@ public class PostController {
     }
 
     @GetMapping("by-topic/{id}")
-    public ResponseEntity<List<PostResponse>> getPostsBySubreddit(@RequestParam int nrPage, Long id) {
+    public ResponseEntity<List<PostResponse>> getPostsBySubreddit(@RequestParam int nrPage,
+                                                                  @PathVariable Long id) {
         int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
                 .status(HttpStatus.OK).body(postService.getPostsBySubreddit(id, correctNrPage - 1));
     }
 
     @GetMapping("by-user/{name}")
-    public ResponseEntity<List<PostResponse>> getPostsByUsername(@RequestParam int nrPage, String username) {
+    public ResponseEntity<List<PostResponse>> getPostsByUsername(@RequestParam int nrPage,
+                                                                 @PathVariable String username) {
         int correctNrPage = nrPage>0 ? nrPage:1;
         return ResponseEntity
                 .status(HttpStatus.OK).body(postService.getPostsByUsername(username, correctNrPage - 1));
+    }
+
+    @PatchMapping("/editPost/{postId}")
+    public void editPost(@PathVariable("postId") Long postId,
+                            @RequestBody Map<String,String> fields){
+        postService.editPost(fields,postId);
+    }
+    @DeleteMapping("/deletePost/{postId}")
+    public void deletePost(@PathVariable("postId") Long postId){
+        postService.deletePost(postId);
     }
 }
