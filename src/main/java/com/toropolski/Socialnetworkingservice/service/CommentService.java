@@ -13,6 +13,7 @@ import com.toropolski.Socialnetworkingservice.repository.PostRepository;
 import com.toropolski.Socialnetworkingservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,8 +51,8 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CommentsDto> getAll(int nrPage) {
-        return commentRepository.findAllComments(PageRequest.of(nrPage, PAGE_SIZE))
+    public List<CommentsDto> getAll(int nrPage, Sort.Direction sort) {
+        return commentRepository.findAllComments(PageRequest.of(nrPage, PAGE_SIZE, Sort.by(sort,"createdDate")))
                 .stream()
                 .map(commentMapper::mapToDto)
                 .collect(Collectors.toList());

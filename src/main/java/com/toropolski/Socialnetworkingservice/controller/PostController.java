@@ -5,6 +5,7 @@ import com.toropolski.Socialnetworkingservice.dto.PostResponse;
 import com.toropolski.Socialnetworkingservice.service.PostService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +27,10 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAllPosts(@RequestParam int nrPage) {
+    public ResponseEntity<List<PostResponse>> getAllPosts(@RequestParam int nrPage, Sort.Direction sort) {
         int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
-                .status(HttpStatus.OK).body(postService.getAllPosts(nrPage -1));
+                .status(HttpStatus.OK).body(postService.getAllPosts(nrPage -1, sort));
     }
 
     @GetMapping("/{id}")

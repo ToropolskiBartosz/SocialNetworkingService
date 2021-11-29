@@ -14,6 +14,7 @@ import com.toropolski.Socialnetworkingservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import static java.util.stream.Collectors.toList;
@@ -49,8 +50,8 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public List<PostResponse> getAllPosts(int nrPage) {
-        return postRepository.findAllPosts(PageRequest.of(nrPage, PAGE_SIZE))
+    public List<PostResponse> getAllPosts(int nrPage, Sort.Direction sort) {
+        return postRepository.findAllPosts(PageRequest.of(nrPage, PAGE_SIZE, Sort.by(sort, "createdDate")))
                 .stream()
                 .map(postMapper::mapToDto)
                 .collect(toList());

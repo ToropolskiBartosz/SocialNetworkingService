@@ -3,6 +3,7 @@ package com.toropolski.Socialnetworkingservice.controller;
 import com.toropolski.Socialnetworkingservice.dto.CommentsDto;
 import com.toropolski.Socialnetworkingservice.service.CommentService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,11 +23,11 @@ public class CommentsController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
     @GetMapping
-    public ResponseEntity<List<CommentsDto>> getAllComments(@RequestParam int nrPage){
+    public ResponseEntity<List<CommentsDto>> getAllComments(@RequestParam int nrPage, Sort.Direction sort){
         int correctNrPage = nrPage>0 ? nrPage : 1;
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(commentService.getAll(correctNrPage - 1));
+                .body(commentService.getAll(correctNrPage - 1, sort));
     }
 
     @GetMapping("/byPostId/{postId}")
